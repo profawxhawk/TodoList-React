@@ -1,25 +1,37 @@
-import logo from './logo.svg';
 import './App.css';
+import React, { Component } from 'react';
+import axios from 'axios'
+import Navbar from './components/Navbar/Navbar';
+import Sidebar from './components/Sidebar/Sidebar'
+class NonBoard extends Component{
+  constructor() {
+    super();
+    this.state = {
+        data: [],
+        isLoading: false,
+    };
+}
+async componentDidMount() {
+    this.setState({isLoading: true})
+    const url="http://127.0.0.1:8000/type"
+    const response = await axios.get(url)
+    this.setState({ data: response.data["all_type"],isLoading:false})
+}
+render()
+{
+  return (
+    <div style={{marginLeft:"5%"}}>
+      <Navbar isLoading={this.state.isLoading} data={this.state.data}/>
+      <Sidebar isLoading={this.state.isLoading} data={this.state.data}/>
+    </div>
+    
+  )
+}
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <NonBoard />
   );
 }
-
 export default App;
