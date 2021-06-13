@@ -1,40 +1,54 @@
 import React, { Component } from 'react';
 import './Navbar.css'
+import axios from 'axios'
 import { FaPlus } from 'react-icons/fa';
 import { TypeObject } from '../Sidebar/Sidebar'
 class Modal extends Component{
     constructor(){
         super()
+        var today = new Date(),
+        date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
         this.state={
         titleErr:"",
         textErr:"",
+        typeErr:"",
         id: "",
+        currentDate: date,
         }
         this.submitform = this.submitform.bind(this);
         this.exitmodal = this.exitmodal.bind(this);
-        this.setTag = this.exitmodal.bind(this);
     }
-    submitform(){
-        if(document.getElementById('title').value==="" && document.getElementById('text').value===""){
-            this.setState({titleErr:"Please enter a title",textErr:"Please enter a description"})
+    async submitform(){
+        let temptitleErr=""
+        let temptextErr=""
+        let temptypeErr=""
+        let flag=0
+        if(document.getElementById('title').value===""){
+            temptitleErr="Please enter a title"
+            flag=1
         }
-        else if(document.getElementById('title').value===""){
-            this.setState({titleErr:"Please enter a title",textErr:""})
+        if(document.getElementById('text').value===""){
+            temptextErr="Please enter a text"
+            flag=1
         }
-        else if(document.getElementById('text').value===""){
-            this.setState({textErr:"Please enter a description",titleErr:""})
+        if(this.state.id===""){
+            temptypeErr="Please select a type"
+            flag=1
+        }
+        if(flag){
+            this.setState({textErr:temptextErr,titleErr:temptitleErr,typeErr:temptypeErr})
         }
         else{
-            console.log("valid")
+            const url="http://127.0.0.1:8000/list"
+            let data= {"createdAt":this.state.currentDate,"dueBy":this.state.currentDate,"title":document.getElementById('title').value,"text":document.getElementById('text').value,"done":false,"partOf":[this.state.id]}
+            const response = await axios.post(url,data)
+            this.props.listadd(data)
+            this.exitmodal()
         }
     }
     exitmodal(){
-        this.setState({textErr:"",titleErr:""})
+        this.setState({textErr:"",titleErr:"",typeErr:""})
         this.props.hidehandler()
-    }
-    setTag(e){
-        e.stopPropagation();
-        console.log(this.state.id)
     }
     render(){
         if(this.props.show){
@@ -44,13 +58,13 @@ class Modal extends Component{
             let tags =  <p>Loading ...</p>
             if (!this.props.isLoading) {
                 tags = this.props.data.map(type => {
-                    if(type.id===this.state.id)
+                    if(type.color===this.state.id)
                     {
-                    return <span onClick={()=>{this.setState({id:type.id})}} style={{cursor:"pointer",backgroundColor:"grey",borderRadius:"10px"}}><TypeObject name={type.name} color={type.color}/></span>
+                    return <span onClick={()=>{this.setState({id:""})}} style={{cursor:"pointer",backgroundColor:"grey",borderRadius:"10px"}}><TypeObject name={type.name} color={type.color}/></span>
                     }
                     else
                     {
-                    return <span onClick={()=>{this.setState({id:type.id})}} style={{cursor:"pointer"}}><TypeObject name={type.name} color={type.color}/></span>
+                    return <span onClick={()=>{this.setState({id:type.color})}} style={{cursor:"pointer"}}><TypeObject name={type.name} color={type.color}/></span>
                     }
                     }
                 )
@@ -87,6 +101,7 @@ class Modal extends Component{
                             <div  className="model-flex">
                                 {tags}
                             </div>
+                            <p style={{color:"red"}}>{this.state.typeErr}</p>
                         </div>
                 </div>
                 </div>
@@ -116,7 +131,7 @@ class Navbar extends Component{
                 <div className="nav-right title">
                     <FaPlus onClick={this.toggleModal}/>
                 </div>
-                <Modal show={this.state.ModalShow} hidehandler={this.toggleModal} data={this.props.data} isLoading={this.props.isLoading}/> 
+                <Modal  listadd={this.props.listadd} show={this.state.ModalShow} hidehandler={this.toggleModal} data={this.props.data} isLoading={this.props.isLoading}/> 
             </nav>
         )
     }

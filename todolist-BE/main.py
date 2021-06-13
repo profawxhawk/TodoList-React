@@ -23,6 +23,16 @@ async def get_all_type():
     print(ret)
     return {'all_type': ret}
 
+@app.get('/list')
+async def get_all_list():
+    ret=[]
+    for i in db.list.find():
+        temp=List(**i).__dict__
+        temp["id"]=str(i.get('_id'))
+        ret.append(temp)
+    print(ret)
+    return {'all_list': ret}
+
 @app.post('/list')
 async def create_list(lists: List):
     ret = db.list.insert_one(lists.dict(by_alias=True))
